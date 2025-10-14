@@ -362,7 +362,7 @@ Answer:
 **Step 2:** Test Telnet service (inherently insecure)
 
 ```bash
-telnet 172.20.0.60
+nc 172.20.0.60 23
 ```
 
 Login with: `telnetuser` / `Telnet123`
