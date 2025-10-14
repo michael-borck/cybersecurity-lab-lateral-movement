@@ -1,0 +1,51 @@
+# Docker
+.env
+docker-compose.override.yml
+*.log
+
+# Shared files (generated during lab)
+shared/*
+!shared/.gitkeep
+
+# Student work
+*_answers.md
+student_submissions/
+
+# macOS
+.DS_Store
+._*
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+*.bak
+*.old
+
+# Captured traffic and logs
+*.pcap
+*.cap
+capture/
+
+# SSH keys (security)
+*.pem
+*_rsa
+*_rsa.pub
+id_*
+stolen_key*
+
+# Credentials and sensitive data
+credentials.txt
+passwords.txt
+secrets/

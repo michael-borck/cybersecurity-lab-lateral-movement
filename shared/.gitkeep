@@ -1,0 +1,2 @@
+# This file keeps the shared directory in git
+# The shared directory is used for file transfers between host and containers
