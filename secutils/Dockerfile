@@ -23,7 +23,8 @@ RUN apk update && apk add --no-cache \
     iproute2 \
     iptables \
     git \
-    vim
+    vim \
+    telnet
 
 # Install impacket for SMB exploitation
 RUN pip3 install --break-system-packages impacket
