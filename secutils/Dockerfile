@@ -13,6 +13,8 @@ RUN apk update && apk add --no-cache \
     python3 \
     py3-pip \
     samba-client \
+    mysql-client \
+    busybox-extras \
     hydra \
     john \
     nikto \

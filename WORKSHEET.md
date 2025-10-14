@@ -378,7 +378,7 @@ Type `exit` to disconnect.
 **Step 3:** Use Impacket for SMB-based remote execution (if SMB is available)
 
 ```bash
-impacket-psexec labuser:Password123@172.20.0.20
+psexec.py labuser:Password123@172.20.0.20
 ```
 
 **Question 6.3:** What privileges did you gain? Were you able to execute commands?
