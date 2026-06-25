@@ -28,7 +28,7 @@ RUN echo "service telnet\n\
 }" > /etc/xinetd.d/telnet
 
 # Create startup script
-RUN echo '#!/bin/bash\nxinetd -stayalive\n' > /start.sh && \
+RUN echo '#!/bin/bash\nxinetd -stayalive -dontfork\n' > /start.sh && \
     chmod +x /start.sh
 
 EXPOSE 23
