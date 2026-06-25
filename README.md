@@ -43,22 +43,37 @@ sudo usermod -aG docker $USER
 newgrp docker
 ```
 
-### 2. Clone or Download Lab Files
+### 2. Get the Compose File
 
-If you received these files as a zip, extract them. Otherwise:
+The lab images are pre-built and published to GitHub Container Registry (GHCR),
+so you don't need to build anything — you only need the `docker-compose.yml`
+file. Clone the repo (or just download `docker-compose.yml`):
+
 ```bash
-cd ~/Projects
-# Files should be in the 'movement' directory
+git clone https://github.com/michael-borck/cybersecurity-lab-lateral-movement.git
+cd cybersecurity-lab-lateral-movement
 ```
 
 ### 3. Start the Lab Environment
 
 ```bash
-cd movement
-docker-compose up -d
+docker compose up -d
 ```
 
-First-time startup will take 5-10 minutes as Docker downloads and builds the images. Subsequent startups will be much faster.
+The first run pulls the pre-built images from GHCR (a few minutes depending on
+your connection); subsequent startups are near-instant. The images are
+published as multi-architecture, so the correct build is pulled automatically
+on Intel/AMD machines and on Apple Silicon Macs.
+
+> **Instructors / developers:** to build the four custom images locally instead
+> of pulling them, layer the build override file on top of the base compose:
+>
+> ```bash
+> docker compose -f docker-compose.yml -f docker-compose.build.yml up -d --build
+> ```
+>
+> Pushes to `main` rebuild and republish the images automatically via the
+> `.github/workflows/build.yml` GitHub Actions workflow.
 
 ### 4. Verify All Containers Are Running
 

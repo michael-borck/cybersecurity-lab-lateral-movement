@@ -1,0 +1,31 @@
+# Build override — for local development of the four custom images.
+#
+# The default docker-compose.yml PULLS pre-built images from GHCR, which is
+# what students use (just `docker compose up -d`).
+#
+# To build the images locally instead of pulling, layer this file on top:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.build.yml build
+#   docker compose -f docker-compose.yml -f docker-compose.build.yml up -d
+#
+# Each service inherits its image name (the GHCR tag) from the base file, so a
+# local build is tagged identically to what CI publishes.
+#
+# NOTE: on exFAT/external drives, macOS writes AppleDouble (._*) sidecar files
+# that break BuildKit's context transfer. If a build fails with
+# "failed to xattr ... operation not permitted", build with the legacy builder:
+#
+#   DOCKER_BUILDKIT=0 docker compose -f docker-compose.yml -f docker-compose.build.yml build
+
+services:
+  secutils:
+    build: ./secutils
+
+  workstation:
+    build: ./workstation
+
+  ubuntu-desktop:
+    build: ./ubuntu-desktop
+
+  telnet:
+    build: ./telnet
