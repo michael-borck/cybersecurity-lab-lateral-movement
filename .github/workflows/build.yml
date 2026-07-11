@@ -27,13 +27,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: cyb204-secutils
+          - name: secutils
             context: ./secutils
-          - name: cyb204-workstation
+          - name: workstation
             context: ./workstation
-          - name: cyb204-ubuntu-desktop
+          - name: ubuntu-desktop
             context: ./ubuntu-desktop
-          - name: cyb204-telnet
+          - name: telnet
             context: ./telnet
 
     steps:

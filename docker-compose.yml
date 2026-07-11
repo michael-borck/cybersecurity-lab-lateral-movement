@@ -1,7 +1,7 @@
 services:
   # Primary attack/security utilities container
   secutils:
-    image: ghcr.io/michael-borck/cyb204-secutils:latest
+    image: ghcr.io/michael-borck/secutils:latest
     container_name: secutils
     hostname: secutils
     networks:
@@ -14,7 +14,7 @@ services:
 
   # Linux workstation target
   workstation:
-    image: ghcr.io/michael-borck/cyb204-workstation:latest
+    image: ghcr.io/michael-borck/workstation:latest
     container_name: workstation
     hostname: workstation
     networks:
@@ -25,7 +25,7 @@ services:
 
   # Ubuntu desktop environment (lightweight)
   ubuntu-desktop:
-    image: ghcr.io/michael-borck/cyb204-ubuntu-desktop:latest
+    image: ghcr.io/michael-borck/ubuntu-desktop:latest
     container_name: ubuntu-desktop
     hostname: ubuntu-desktop
     networks:
@@ -65,7 +65,7 @@ services:
 
   # Telnet service
   telnet:
-    image: ghcr.io/michael-borck/cyb204-telnet:latest
+    image: ghcr.io/michael-borck/telnet:latest
     container_name: telnet
     hostname: telnet
     networks:
