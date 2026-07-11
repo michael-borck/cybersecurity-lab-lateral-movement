@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+# Lateral Movement Lab — immersive console (single environment, hides Docker).
+# You "log in", the network powers on, and you connect to the attacker box
+# (secutils) or open a browser target. Real tools underneath; no `docker` typing.
+set -uo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+LOG="$(mktemp -t lm-console.XXXXXX)"
+C_T='\033[1;36m'; C_OK='\033[0;32m'; C_WARN='\033[1;33m'; C_ERR='\033[0;31m'
+C_D='\033[0;90m'; C_P='\033[1;35m'; NC='\033[0m'
+ATTACKER="secutils"
+
+banner(){ printf "${C_T}"; cat <<EOF
+
+  +===================================================================+
+  |        L A T E R A L   M O V E M E N T   ·   P I V O T I N G      |
+  |        Attacker: secutils 172.20.0.10  ·  isolated lab network    |
+  +===================================================================+
+EOF
+printf "${NC}\n"; }
+
+need_docker(){ command -v docker >/dev/null 2>&1 || { printf "${C_ERR}Docker isn't installed.${NC}\n"; exit 1; }
+  docker info >/dev/null 2>&1 || { printf "${C_ERR}Docker isn't running.${NC} Start Docker Desktop.\n"; exit 1; }; }
+
+bring_up(){
+  if [ -n "$(docker compose -f "$ROOT"/docker-compose.yml ps -q 2>/dev/null)" ]; then printf "${C_OK}Lab already running.${NC}\n"; return; fi
+  printf "${C_D}Powering on the lab network (first run pulls images)...${NC}\n"
+  ( cd "$ROOT" && docker compose up -d ) >"$LOG" 2>&1 &
+  local pid=$!; while kill -0 "$pid" 2>/dev/null; do printf "."; sleep 1; done; printf "\n"
+  if ! wait "$pid"; then printf "${C_ERR}Could not start the lab:${NC}\n"; tail -n 15 "$LOG"; exit 1; fi
+  printf "${C_OK}Network up. You are logged in.${NC}\n"
+}
+dc(){ ( cd "$ROOT" && docker compose "$@" ); }
+
+open_url(){ local u="${1:-}"; [ -n "$u" ] || { printf "${C_ERR}usage: open juice|dvwa${NC}\n"; return; }
+  case "$u" in juice|juice-shop) u="http://localhost:3000" ;; dvwa) u="http://localhost:8080" ;; esac
+  printf "${C_OK}Opening %s${NC}\n" "$u"
+  if command -v open >/dev/null 2>&1; then open "$u" >/dev/null 2>&1
+  elif command -v xdg-open >/dev/null 2>&1; then xdg-open "$u" >/dev/null 2>&1
+  elif command -v explorer.exe >/dev/null 2>&1; then explorer.exe "$u" >/dev/null 2>&1
+  else printf "${C_WARN}Open in your browser:${NC} %s\n" "$u"; fi; }
+
+do_connect(){ local svc="${1:-$ATTACKER}"
+  printf "${C_D}Opening a shell on %s (type 'exit' to come back)...${NC}\n" "$svc"
+  dc exec "$svc" bash 2>/dev/null || dc exec "$svc" sh 2>/dev/null || printf "${C_ERR}No shell on '%s'. Try: machines${NC}\n" "$svc"; }
+
+show_machines(){ printf "${C_D}Machines in the lab:${NC}\n"; dc ps --format 'table {{.Service}}\t{{.Status}}' 2>/dev/null | sed 's/^/  /'; }
+
+show_help(){ cat <<EOF
+
+  ${C_P}connect [machine]${NC}   shell on the attacker box (secutils), or a named machine
+  ${C_P}open juice|dvwa${NC}     open a browser target (Juice Shop :3000 / DVWA :8080)
+  ${C_P}machines${NC}            list the machines and their IPs
+  ${C_P}worksheet${NC}           where to find the lab worksheet
+  ${C_P}stop${NC}                shut the lab down
+  ${C_P}help${NC} / ${C_P}quit${NC}
+EOF
+}
+
+repl(){
+  printf "\n${C_OK}Welcome%s.${NC} Type ${C_P}connect${NC} to drop into the attacker box (secutils), then pivot.\n" "${ANALYST:+, $ANALYST}"
+  printf "Browser targets: ${C_P}open juice${NC} / ${C_P}open dvwa${NC}. Type ${C_P}help${NC} for all commands.\n\n"
+  while true; do printf "${C_P}lab>${NC} "; if ! read -r line; then break; fi
+    # shellcheck disable=SC2086
+    set -- $line; local c="${1:-}"; [ $# -gt 0 ] && shift || true
+    case "$c" in
+      "") : ;; connect|shell) do_connect "${1:-}" ;; open) open_url "${1:-}" ;;
+      machines|ps|services) show_machines ;; worksheet) printf "  WORKSHEET.md (in the repo)\n" ;;
+      stop) dc down >/dev/null 2>&1; printf "${C_OK}Lab stopped.${NC}\n" ;;
+      help|\?) show_help ;; quit|exit|logout) break ;;
+      *) printf "${C_ERR}unknown: %s${NC} (help)\n" "$c" ;; esac
+  done
+  printf "\n"; read -r -p "Shut the lab down before leaving? (y/N) " a
+  case "$a" in [Yy]*) dc down >/dev/null 2>&1; printf "${C_OK}Stopped.${NC}\n" ;; *) printf "${C_D}Left running. ./start.sh to return.${NC}\n" ;; esac
+}
+
+ANALYST="${1:-}"; banner; need_docker
+[ -z "$ANALYST" ] && [ -t 0 ] && read -r -p "Enter your name (for the session): " ANALYST
+bring_up; repl

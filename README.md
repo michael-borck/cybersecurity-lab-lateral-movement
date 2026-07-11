@@ -4,6 +4,8 @@
 [![cybersecurity](https://img.shields.io/badge/-cybersecurity-f44336?style=flat-square)](https://github.com/topics/cybersecurity) [![docker](https://img.shields.io/badge/-docker-2496ed?style=flat-square)](https://github.com/topics/docker) [![docker-compose](https://img.shields.io/badge/-docker--compose-blue?style=flat-square)](https://github.com/topics/docker-compose) [![edtech](https://img.shields.io/badge/-edtech-4caf50?style=flat-square)](https://github.com/topics/edtech) [![ethical-hacking](https://img.shields.io/badge/-ethical--hacking-blue?style=flat-square)](https://github.com/topics/ethical-hacking) [![html](https://img.shields.io/badge/-html-e34f26?style=flat-square)](https://github.com/topics/html) [![lateral-movement](https://img.shields.io/badge/-lateral--movement-blue?style=flat-square)](https://github.com/topics/lateral-movement) [![penetration-testing](https://img.shields.io/badge/-penetration--testing-blue?style=flat-square)](https://github.com/topics/penetration-testing) [![security-lab](https://img.shields.io/badge/-security--lab-blue?style=flat-square)](https://github.com/topics/security-lab) [![vulnerable-applications](https://img.shields.io/badge/-vulnerable--applications-blue?style=flat-square)](https://github.com/topics/vulnerable-applications)
 <!-- BADGES:END -->
 
+**▶ Start here: https://michael-borck.github.io/cybersecurity-lab-lateral-movement/** — or run `./start.sh`.
+
 This Docker-based lab environment provides a safe, isolated network for practicing lateral movement techniques as part of the CYB204 Ethical Hacking course.
 
 ## System Requirements
