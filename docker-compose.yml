@@ -1,104 +1,125 @@
+# Lateral Movement Lab — two-segment network.
+#
+# The attacker box (secutils) lives on the "corp" segment together with the
+# workstation and the public-facing web apps. The sensitive services — LDAP,
+# MySQL, telnet and a second workstation — live on the "internal" segment,
+# which secutils CANNOT reach directly.
+#
+# The workstation is dual-homed (it sits on BOTH segments), so it is the pivot:
+# compromise it, then tunnel through it (ssh -D / proxychains) to reach the
+# internal services. That is the whole point of the lab.
+#
+#   corp     172.20.1.0/24   secutils .10 · workstation .20 · juice-shop .70 · dvwa .80
+#   internal 172.20.2.0/24   workstation .20 · ubuntu-desktop .30 · ldap .40 · mysql .50 · telnet .60
+
 services:
-  # Primary attack/security utilities container
+  # Attacker box — your tools. On the corp segment ONLY.
   secutils:
     image: ghcr.io/michael-borck/latmove-secutils:latest
     container_name: secutils
     hostname: secutils
     networks:
-      cyb204_net:
-        ipv4_address: 172.20.0.10
+      corp:
+        ipv4_address: 172.20.1.10
     stdin_open: true
     tty: true
     volumes:
       - ./shared:/shared
 
-  # Linux workstation target
+  # The foothold host and the pivot — dual-homed on corp AND internal.
   workstation:
     image: ghcr.io/michael-borck/latmove-workstation:latest
     container_name: workstation
     hostname: workstation
     networks:
-      cyb204_net:
-        ipv4_address: 172.20.0.20
+      corp:
+        ipv4_address: 172.20.1.20
+      internal:
+        ipv4_address: 172.20.2.20
     stdin_open: true
     tty: true
 
-  # Ubuntu desktop environment (lightweight)
+  # A second workstation, reachable only from inside. Internal segment.
   ubuntu-desktop:
     image: ghcr.io/michael-borck/latmove-ubuntu-desktop:latest
     container_name: ubuntu-desktop
     hostname: ubuntu-desktop
     networks:
-      cyb204_net:
-        ipv4_address: 172.20.0.30
+      internal:
+        ipv4_address: 172.20.2.30
     stdin_open: true
     tty: true
     environment:
       - DISPLAY=:0
 
-  # LDAP service
+  # LDAP directory — internal only.
   ldap:
     image: osixia/openldap:latest
     container_name: ldap
     hostname: ldap
     networks:
-      cyb204_net:
-        ipv4_address: 172.20.0.40
+      internal:
+        ipv4_address: 172.20.2.40
     environment:
-      - LDAP_ORGANISATION=CYB204
-      - LDAP_DOMAIN=cyb204.local
+      - LDAP_ORGANISATION=Northwind
+      - LDAP_DOMAIN=corp.local
       - LDAP_ADMIN_PASSWORD=admin123
 
-  # MySQL database
+  # MySQL database — internal only.
   mysql:
     image: mysql:8.0
     container_name: mysql
     hostname: mysql
     networks:
-      cyb204_net:
-        ipv4_address: 172.20.0.50
+      internal:
+        ipv4_address: 172.20.2.50
     environment:
       - MYSQL_ROOT_PASSWORD=root123
       - MYSQL_DATABASE=testdb
       - MYSQL_USER=dbuser
       - MYSQL_PASSWORD=dbpass123
 
-  # Telnet service
+  # Legacy telnet service — internal only.
   telnet:
     image: ghcr.io/michael-borck/latmove-telnet:latest
     container_name: telnet
     hostname: telnet
     networks:
-      cyb204_net:
-        ipv4_address: 172.20.0.60
+      internal:
+        ipv4_address: 172.20.2.60
     stdin_open: true
     tty: true
 
-  # OWASP Juice Shop (vulnerable web app)
+  # OWASP Juice Shop — a public-facing web app on the corp segment.
   juice-shop:
     image: bkimminich/juice-shop:latest
     container_name: juice-shop
     hostname: juice-shop
     networks:
-      cyb204_net:
-        ipv4_address: 172.20.0.70
+      corp:
+        ipv4_address: 172.20.1.70
     ports:
       - "3000:3000"
 
-  # DVWA (Damn Vulnerable Web Application)
+  # DVWA — a public-facing web app on the corp segment.
   dvwa:
     image: vulnerables/web-dvwa:latest
     container_name: dvwa
     hostname: dvwa
     networks:
-      cyb204_net:
-        ipv4_address: 172.20.0.80
+      corp:
+        ipv4_address: 172.20.1.80
     ports:
       - "8080:80"
 
 networks:
-  cyb204_net:
+  corp:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.20.0.0/24
+        - subnet: 172.20.1.0/24
+  internal:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.2.0/24

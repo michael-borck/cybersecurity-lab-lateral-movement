@@ -52,6 +52,27 @@ RUN echo "[shared]\n\
     create mask = 0777\n\
     directory mask = 0777" >> /etc/samba/smb.conf
 
+# Plant loot that reveals the internal segment and the creds to reach it.
+# This box is dual-homed (172.20.1.20 on corp, 172.20.2.20 on internal), so once
+# an attacker lands here they can pivot to the 172.20.2.0/24 services.
+RUN printf '%s\n' \
+    'ssh developer@172.20.2.30' \
+    'mysql -h 172.20.2.50 -u root -proot123' \
+    'ldapsearch -x -H ldap://172.20.2.40 -D "cn=admin,dc=corp,dc=local" -w admin123' \
+    'telnet 172.20.2.60' \
+    > /home/labuser/.bash_history && \
+    chown labuser:labuser /home/labuser/.bash_history
+
+RUN printf '%s\n' \
+    'Internal services live on 172.20.2.0/24 and are only reachable from this box.' \
+    '' \
+    '  ldap     172.20.2.40   cn=admin,dc=corp,dc=local / admin123' \
+    '  mysql    172.20.2.50   root / root123' \
+    '  telnet   172.20.2.60   telnetuser / Telnet123' \
+    '  dev-box  172.20.2.30   developer / Dev2023!' \
+    > /home/labuser/internal-hosts.txt && \
+    chown labuser:labuser /home/labuser/internal-hosts.txt
+
 # Create startup script
 RUN echo '#!/bin/bash\n\
 service ssh start\n\

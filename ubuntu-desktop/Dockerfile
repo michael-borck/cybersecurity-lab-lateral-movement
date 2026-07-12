@@ -31,19 +31,19 @@ RUN mkdir /var/run/sshd && \
 
 # Create vulnerable configuration files with stored credentials
 RUN mkdir -p /home/developer/.config/app && \
-    echo "[database]\nhost=172.20.0.50\nusername=dbuser\npassword=dbpass123" > /home/developer/.config/app/config.ini && \
+    echo "[database]\nhost=172.20.2.50\nusername=dbuser\npassword=dbpass123" > /home/developer/.config/app/config.ini && \
     chown -R developer:developer /home/developer/.config && \
     chmod 644 /home/developer/.config/app/config.ini
 
 # Create a credentials file in home directory
-RUN echo "=== Application Credentials ===\nLDAP Admin: cn=admin,dc=cyb204,dc=local / admin123\nMySQL: root / root123" > /home/developer/credentials.txt && \
+RUN echo "=== Application Credentials ===\nLDAP Admin: cn=admin,dc=corp,dc=local / admin123\nMySQL: root / root123" > /home/developer/credentials.txt && \
     chown developer:developer /home/developer/credentials.txt && \
     chmod 644 /home/developer/credentials.txt
 
 # Add some history for realistic enumeration
 RUN mkdir -p /home/developer && \
-    echo "ssh admin@172.20.0.20" > /home/developer/.bash_history && \
-    echo "mysql -h 172.20.0.50 -u root -p" >> /home/developer/.bash_history && \
+    echo "ssh admin@172.20.2.20" > /home/developer/.bash_history && \
+    echo "mysql -h 172.20.2.50 -u root -p" >> /home/developer/.bash_history && \
     echo "cat /etc/shadow" >> /home/developer/.bash_history && \
     chown developer:developer /home/developer/.bash_history
 

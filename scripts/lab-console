@@ -13,7 +13,7 @@ banner(){ printf "${C_T}"; cat <<EOF
 
   +===================================================================+
   |        L A T E R A L   M O V E M E N T   ·   P I V O T I N G      |
-  |        Attacker: secutils 172.20.0.10  ·  isolated lab network    |
+  |        Attacker: secutils 172.20.1.10  ·  corp segment            |
   +===================================================================+
 EOF
 printf "${NC}\n"; }
@@ -50,7 +50,7 @@ show_help(){ cat <<EOF
   ${C_P}connect [machine]${NC}   shell on the attacker box (secutils), or a named machine
   ${C_P}open juice|dvwa${NC}     open a browser target (Juice Shop :3000 / DVWA :8080)
   ${C_P}machines${NC}            list the machines and their IPs
-  ${C_P}worksheet${NC}           where to find the lab worksheet
+  ${C_P}guide${NC}               where to find the lab guide
   ${C_P}stop${NC}                shut the lab down
   ${C_P}help${NC} / ${C_P}quit${NC}
 EOF
@@ -64,7 +64,7 @@ repl(){
     set -- $line; local c="${1:-}"; [ $# -gt 0 ] && shift || true
     case "$c" in
       "") : ;; connect|shell) do_connect "${1:-}" ;; open) open_url "${1:-}" ;;
-      machines|ps|services) show_machines ;; worksheet) printf "  WORKSHEET.md (in the repo)\n" ;;
+      machines|ps|services) show_machines ;; guide) printf "  LAB-GUIDE.md (in the repo)\n" ;;
       stop) dc down >/dev/null 2>&1; printf "${C_OK}Lab stopped.${NC}\n" ;;
       help|\?) show_help ;; quit|exit|logout) break ;;
       *) printf "${C_ERR}unknown: %s${NC} (help)\n" "$c" ;; esac
