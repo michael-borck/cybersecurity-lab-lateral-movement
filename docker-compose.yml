@@ -103,14 +103,32 @@ services:
 
   # DVWA — a public-facing web app on the corp segment.
   dvwa:
-    image: vulnerables/web-dvwa:latest
+    image: ghcr.io/digininja/dvwa:latest  # multi-arch (amd64+arm64); needs the dvwa-db service below
     container_name: dvwa
     hostname: dvwa
+    environment:
+      - DB_SERVER=dvwa-db
+    depends_on:
+      - dvwa-db
     networks:
       corp:
         ipv4_address: 172.20.1.80
     ports:
-      - "8080:80"
+      - "8080:80" # browse http://localhost:8080 then /setup.php -> Create / Reset Database
+
+  # DVWA's database backend (on corp with the app it serves).
+  dvwa-db:
+    image: mariadb:10
+    container_name: dvwa-db
+    hostname: dvwa-db
+    environment:
+      - MYSQL_ROOT_PASSWORD=dvwa
+      - MYSQL_DATABASE=dvwa
+      - MYSQL_USER=dvwa
+      - MYSQL_PASSWORD=p@ssw0rd
+    networks:
+      corp:
+        ipv4_address: 172.20.1.85
 
 networks:
   corp:

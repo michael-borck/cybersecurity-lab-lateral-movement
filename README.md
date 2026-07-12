@@ -196,7 +196,7 @@ proxychains mysql -h 172.20.2.50 -u root -proot123
 
 **Web applications (published to your host):**
 - Juice Shop: http://localhost:3000
-- DVWA: http://localhost:8080
+- DVWA: http://localhost:8080 (first visit `/setup.php` and click Create / Reset Database)
 
 ## Lab Guide
 
