@@ -1,5 +1,9 @@
 # Lateral Movement — Lab Guide
 
+> **Using an AI assistant?** Make it a thinking partner, not an autopilot — and never run a command you
+> can't explain. The series guide **[Learning with AI](https://github.com/michael-borck/security-labs/blob/main/LEARNING-WITH-AI.md)**
+> shows how, including how to repeat each lab until you don't need the assistant at all.
+
 ## Lab Scenario
 
 You have a foothold on the edge of a corporate network: an attack box called
