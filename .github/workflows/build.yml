@@ -27,13 +27,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: secutils
+          - name: latmove-secutils
             context: ./secutils
-          - name: workstation
+          - name: latmove-workstation
             context: ./workstation
-          - name: ubuntu-desktop
+          - name: latmove-ubuntu-desktop
             context: ./ubuntu-desktop
-          - name: telnet
+          - name: latmove-telnet
             context: ./telnet
 
     steps:
