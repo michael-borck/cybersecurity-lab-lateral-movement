@@ -71,8 +71,8 @@ cd cybersecurity-lab-lateral-movement
 
 ### 3. Start the Lab
 
-The friendly way — a single command that boots the network and drops you at an
-immersive `lab>` prompt (no Docker commands to memorise):
+The friendly way — a single command that boots the network and logs you straight
+into a real shell on the attacker box (no Docker commands to memorise):
 
 ```bash
 ./start.sh
@@ -167,14 +167,18 @@ These are intentionally weak — discovering and reusing them *is* the lab.
 
 ## Quick Start Guide
 
-The immersive console hides Docker behind a handful of plain-English commands.
-At the `lab>` prompt:
+`./start.sh` hides Docker: it boots the network and drops you straight into a
+real interactive shell on the attacker box (secutils). A welcome banner greets
+you — from that shell:
 
-- `connect` — drop into a shell on the attacker box (secutils)
-- `machines` — list the machines and their status
-- `open juice` / `open dvwa` — open a browser target
-- `guide` — where to find the lab guide
-- `stop` — shut the lab down
+- `labhelp` — the attack chain, straight from the lab guide (scan → foothold → pivot → loot)
+- `netmap` — redraw the two-segment network map
+- `scan` / `pnmap` — handy aliases for the corp sweep and a proxychained nmap
+- `exit` — leave the shell (you'll be asked whether to shut the lab down)
+
+Browser targets are published to your host: Juice Shop at `http://localhost:3000`
+and DVWA at `http://localhost:8080` (or run `./start.sh open juice` / `./start.sh
+open dvwa`).
 
 Prefer to drive Docker yourself? Get onto the attacker box with:
 

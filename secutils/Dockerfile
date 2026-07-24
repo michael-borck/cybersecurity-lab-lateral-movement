@@ -47,10 +47,22 @@ RUN mkdir -p /etc/proxychains && \
 # Create a working directory
 WORKDIR /root
 
-# Add some helpful aliases
-RUN echo 'alias ll="ls -la"' >> /root/.bashrc && \
-    echo 'alias scan="nmap -sn 172.20.1.0/24"' >> /root/.bashrc && \
-    echo 'alias pnmap="proxychains nmap -sT -Pn"' >> /root/.bashrc && \
-    echo 'PS1="\[\033[01;32m\]secutils\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "' >> /root/.bashrc
+# Pentest-workstation feel: a welcome banner (motd), a host-aware `labhelp` that
+# lists the REAL attack chain from the lab guide, a `netmap` topology command, and
+# the themed prompt + scan/pnmap aliases — all on every interactive shell.
+COPY motd /etc/motd-lab
+COPY labhelp /usr/local/bin/labhelp
+COPY netmap /usr/local/bin/netmap
+# Install the banner+aliases+PS1 snippet for BOTH interactive entry points:
+# /etc/profile.d for login shells, and /etc/bash/bashrc (Alpine's system bashrc)
+# for the `docker exec -it secutils bash` home shell. The snippet is $--guarded so
+# a one-off non-interactive `docker exec secutils sh -c ...` / `ssh host cmd` stays
+# clean (no banner spam) — that's why it goes here and NOT in ~/.bashrc. exFAT gives
+# copied files mode 0700, so set the modes explicitly.
+COPY lab-bashrc /etc/profile.d/00-lab-workstation.sh
+RUN mkdir -p /etc/bash \
+    && chmod 644 /etc/motd-lab /etc/profile.d/00-lab-workstation.sh \
+    && chmod 755 /usr/local/bin/labhelp /usr/local/bin/netmap \
+    && cat /etc/profile.d/00-lab-workstation.sh >> /etc/bash/bashrc
 
 CMD ["/bin/bash"]

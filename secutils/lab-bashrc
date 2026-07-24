@@ -1,0 +1,20 @@
+# --- Lateral Movement Lab: pentest-workstation feel (INTERACTIVE shells only) --
+# Installed as /etc/profile.d/00-lab-workstation.sh (login shells) and appended to
+# /etc/bash/bashrc (Alpine's system bashrc, sourced by the docker-exec home shell).
+# Guarded on $- so a one-off non-interactive call — `docker exec secutils sh -c ...`
+# or `ssh host cmd` — stays clean: only REAL interactive sessions get the banner,
+# the aliases and the themed prompt. Installed here (not ~/.bashrc) to mirror the
+# sibling labs and keep scripted/piped calls quiet.
+case $- in
+  *i*)
+    if [ -z "$LAB_MOTD_SHOWN" ]; then
+        [ -f /etc/motd-lab ] && cat /etc/motd-lab
+        printf "  You are on:  %s  (172.20.1.10 · corp segment)\n\n" "$(hostname)"
+        export LAB_MOTD_SHOWN=1
+    fi
+    alias ll='ls -la'
+    alias scan='nmap -sn 172.20.1.0/24'
+    alias pnmap='proxychains nmap -sT -Pn'
+    PS1='\[\033[01;32m\]\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+    ;;
+esac

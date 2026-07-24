@@ -24,7 +24,7 @@ tools through it. That is lateral movement, and it is the entire job today.
 ## Pre-Lab Setup
 
 - [ ] Start the lab: `./start.sh` (macOS: double-click `start.command`; Windows: `start.bat`)
-- [ ] At the `lab>` prompt, type `connect` to drop into the attacker box
+- [ ] It brings the network up and logs you **straight into the attacker box (secutils)** — a welcome banner greets you; type `labhelp` for the attack chain or `netmap` for the network map
 - [ ] Confirm you're on secutils: `hostname` should print `secutils`, and `ip a` should show only a `172.20.1.10` address — one segment, corp only
 
 Prefer raw Docker? `docker compose up -d` then `docker exec -it secutils bash`.
@@ -54,9 +54,10 @@ nmap -sV 172.20.1.20
 
 Note the open ports: **SSH (22)** and **SMB (139/445)**. Those are your two
 candidate footholds. The web apps (juice-shop `:3000`, dvwa `:8080`) are
-published to your host browser — open them from the `lab>` prompt with
-`open juice` / `open dvwa` if you want to poke at them, but the pivot lives on
-the workstation.
+published to your host browser — open them in a browser at `http://localhost:3000`
+(juice) / `http://localhost:8080` (dvwa), or run `./start.sh open juice` /
+`./start.sh open dvwa` from another terminal if you want to poke at them. But the
+pivot lives on the workstation.
 
 Now prove the boundary. Try to reach an internal host directly:
 
@@ -264,7 +265,7 @@ Think through these as you go; they're the point of the exercise, not homework:
 When you're finished:
 
 - [ ] Close any open `ssh -D` tunnel (`exit` the session)
-- [ ] Stop the lab: at the `lab>` prompt type `stop`, or run `docker compose down`
+- [ ] Stop the lab: `exit` the secutils shell and answer `y` to the shutdown prompt, or run `docker compose down`
 
 ## Going further — Incident Zero
 

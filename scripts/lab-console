@@ -1,7 +1,14 @@
 #!/usr/bin/env bash
-# Lateral Movement Lab — immersive console (single environment, hides Docker).
-# You "log in", the network powers on, and you connect to the attacker box
-# (secutils) or open a browser target. Real tools underneath; no `docker` typing.
+# Lateral Movement Lab — launcher (single environment).
+# Brings the two-segment network up and logs you STRAIGHT into the attacker box
+# (secutils) as a real interactive shell. From there you run the real tools —
+# nmap / hydra / ssh / proxychains — and pivot through the workstation. No `docker`
+# to memorise, but nothing is faked either: the shell, the tools and the errors
+# are all genuine, which is exactly why an AI assistant can help you in it.
+#
+#   ./start.sh              bring the lab up and drop into the secutils shell
+#   ./start.sh open juice   just open a browser target (Juice Shop :3000)
+#   ./start.sh open dvwa    just open a browser target (DVWA :8080)
 set -uo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LOG="$(mktemp -t lm-console.XXXXXX)"
@@ -28,17 +35,18 @@ printf "${NC}\n"; }
 need_docker(){ command -v docker >/dev/null 2>&1 || { printf "${C_ERR}Docker isn't installed.${NC}\n"; exit 1; }
   docker info >/dev/null 2>&1 || { printf "${C_ERR}Docker isn't running.${NC} Start Docker Desktop.\n"; exit 1; }; }
 
+dc(){ ( cd "$ROOT" && docker compose "$@" ); }
+
 bring_up(){
-  if [ -n "$(docker compose -f "$ROOT"/docker-compose.yml ps -q 2>/dev/null)" ]; then printf "${C_OK}Lab already running.${NC}\n"; return; fi
+  if [ -n "$(dc ps -q 2>/dev/null)" ]; then printf "${C_OK}Lab already running.${NC}\n"; return; fi
   printf "${C_D}Powering on the lab network (first run pulls images)...${NC}\n"
   ( cd "$ROOT" && docker compose up -d ) >"$LOG" 2>&1 &
   local pid=$!; while kill -0 "$pid" 2>/dev/null; do printf "."; sleep 1; done; printf "\n"
   if ! wait "$pid"; then printf "${C_ERR}Could not start the lab:${NC}\n"; tail -n 15 "$LOG"; exit 1; fi
   printf "${C_OK}Network up. You are logged in.${NC}\n"
 }
-dc(){ ( cd "$ROOT" && docker compose "$@" ); }
 
-open_url(){ local u="${1:-}"; [ -n "$u" ] || { printf "${C_ERR}usage: open juice|dvwa${NC}\n"; return; }
+open_url(){ local u="${1:-}"; [ -n "$u" ] || { printf "${C_ERR}usage: open juice|dvwa${NC}\n"; return 1; }
   case "$u" in juice|juice-shop) u="http://localhost:3000" ;; dvwa) u="http://localhost:8080" ;; esac
   printf "${C_OK}Opening %s${NC}\n" "$u"
   if command -v open >/dev/null 2>&1; then open "$u" >/dev/null 2>&1
@@ -46,40 +54,23 @@ open_url(){ local u="${1:-}"; [ -n "$u" ] || { printf "${C_ERR}usage: open juice
   elif command -v explorer.exe >/dev/null 2>&1; then explorer.exe "$u" >/dev/null 2>&1
   else printf "${C_WARN}Open in your browser:${NC} %s\n" "$u"; fi; }
 
-do_connect(){ local svc="${1:-$ATTACKER}"
-  printf "${C_D}Opening a shell on %s (type 'exit' to come back)...${NC}\n" "$svc"
-  dc exec "$svc" bash 2>/dev/null || dc exec "$svc" sh 2>/dev/null || printf "${C_ERR}No shell on '%s'. Try: machines${NC}\n" "$svc"; }
-
-show_machines(){ printf "${C_D}Machines in the lab:${NC}\n"; dc ps --format 'table {{.Service}}\t{{.Status}}' 2>/dev/null | sed 's/^/  /'; }
-
-show_help(){ cat <<EOF
-
-  ${C_P}connect [machine]${NC}   shell on the attacker box (secutils), or a named machine
-  ${C_P}open juice|dvwa${NC}     open a browser target (Juice Shop :3000 / DVWA :8080)
-  ${C_P}machines${NC}            list the machines and their IPs
-  ${C_P}guide${NC}               where to find the lab guide
-  ${C_P}stop${NC}                shut the lab down
-  ${C_P}help${NC} / ${C_P}quit${NC}
-EOF
-}
-
-repl(){
-  printf "\n${C_OK}Welcome%s.${NC} Type ${C_P}connect${NC} to drop into the attacker box (secutils), then pivot.\n" "${ANALYST:+, $ANALYST}"
-  printf "Browser targets: ${C_P}open juice${NC} / ${C_P}open dvwa${NC}. Type ${C_P}help${NC} for all commands.\n\n"
-  while true; do printf "${C_P}lab>${NC} "; if ! read -r line; then break; fi
-    # shellcheck disable=SC2086
-    set -- $line; local c="${1:-}"; [ $# -gt 0 ] && shift || true
-    case "$c" in
-      "") : ;; connect|shell) do_connect "${1:-}" ;; open) open_url "${1:-}" ;;
-      machines|ps|services) show_machines ;; guide) printf "  LAB-GUIDE.md (in the repo)\n" ;;
-      stop) dc down >/dev/null 2>&1; printf "${C_OK}Lab stopped.${NC}\n" ;;
-      help|\?) show_help ;; quit|exit|logout) break ;;
-      *) printf "${C_ERR}unknown: %s${NC} (help)\n" "$c" ;; esac
-  done
+# Log the student straight into the secutils container as a real interactive shell.
+# The welcome banner + themed prompt come from the image (/etc/bash/bashrc), so it
+# feels like logging into a dedicated pentest workstation every time. The web
+# targets are published to the host browser, so we just point at them here.
+enter_shell(){
+  printf "\n${C_OK}Connection established.${NC} Logging in to the %s attacker workstation...\n" "$ATTACKER"
+  printf "${C_D}Browser targets on your host: Juice Shop http://localhost:3000 · DVWA http://localhost:8080${NC}\n"
+  printf "${C_D}(open one without entering the shell: ./start.sh open juice | open dvwa)${NC}\n"
+  printf "${C_D}Type 'exit' to leave the shell.${NC}\n\n"
+  dc exec "$ATTACKER" bash 2>/dev/null || dc exec "$ATTACKER" sh 2>/dev/null \
+    || { printf "${C_ERR}No shell on '%s'. Is the lab up?${NC}\n" "$ATTACKER"; return 1; }
   printf "\n"; read -r -p "Shut the lab down before leaving? (y/N) " a
-  case "$a" in [Yy]*) dc down >/dev/null 2>&1; printf "${C_OK}Stopped.${NC}\n" ;; *) printf "${C_D}Left running. ./start.sh to return.${NC}\n" ;; esac
+  case "$a" in [Yy]*) dc down >/dev/null 2>&1; printf "${C_OK}Stopped.${NC}\n" ;;
+               *) printf "${C_D}Left running. ./start.sh to return, or 'docker compose down' to halt it.${NC}\n" ;; esac
 }
 
-ANALYST="${1:-}"; banner; need_docker
-[ -z "$ANALYST" ] && [ -t 0 ] && read -r -p "Enter your name (for the session): " ANALYST
-bring_up; repl
+# `./start.sh open juice|dvwa` — open a browser target and exit, no shell.
+if [ "${1:-}" = "open" ]; then need_docker; open_url "${2:-}"; exit $?; fi
+
+banner; need_docker; bring_up; enter_shell

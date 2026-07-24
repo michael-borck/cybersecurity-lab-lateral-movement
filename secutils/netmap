@@ -1,0 +1,20 @@
+#!/bin/sh
+# `netmap` — redraw the two-segment lab network at any time.
+cat <<'EOF'
+
+     CORP  172.20.1.0/24                       INTERNAL  172.20.2.0/24
+     (you can see this)                        (no route until you pivot)
+  +----------------------------+           +----------------------------+
+  |  secutils      .10  (you)  |           |  ubuntu-desktop   .30      |
+  |  workstation   .20  ----------[PIVOT]----------  .20  workstation   |
+  |  juice-shop    .70         |           |  ldap             .40      |
+  |  dvwa          .80         |           |  mysql            .50      |
+  +----------------------------+           |  telnet           .60      |
+                                           +----------------------------+
+
+     The workstation is DUAL-HOMED — one leg on corp (172.20.1.20), one leg
+     on internal (172.20.2.20). secutils has NO route to 172.20.2.x directly.
+     Own the workstation, run  ssh -D 1080 labuser@172.20.1.20 , then send your
+     tools through it with  proxychains  to reach the internal segment.
+
+EOF
